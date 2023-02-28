@@ -3,7 +3,7 @@ const db = require('./config/connection');
 
 const {User} = require('./models');
 const {Thought} = require('./models');
-// const REACTION = require('./models/reaction');
+
 
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -34,6 +34,52 @@ app.post('/api/users', (req, res) => {
         }
       });
   });
+
+  app.get('/api/users/:id', (req, res) => {
+    User.findOne({ _id: req.params.id })
+      .populate('thoughts')
+      .exec((err, result) => {
+        if (result) {
+          res.status(200).json(result);
+        } else {
+          console.log('Uh Oh, something went wrong');
+          res.status(500).json({ error: 'Something went wrong' });
+        }
+      });
+  });
+
+  app.post('/api/users/:id/friends/:friendId', (req, res) => {
+    User.findOneAndUpdate(
+      { _id: req.params.id },
+      { $push: { friends: req.params.friendId } },
+      { new: true },
+      (err, user) => {
+        if (err) {
+          console.log('Uh Oh, something went wrong');
+          res.status(500).json({ error: 'Something went wrong' });
+        } else {
+          res.status(201).json(user);
+        }
+      }
+    );
+  });
+
+  app.delete('/api/users/:id/friends/:friendId', (req, res) => {
+    User.findOneAndUpdate(
+      { _id: req.params.id },
+      { $pull: { friends: req.params.friendId } },
+      { new: true },
+      (err, user) => {
+        if (err) {
+          console.log('Uh Oh, something went wrong');
+          res.status(500).json({ error: 'Something went wrong' });
+        } else {
+          res.status(201).json(user);
+        }
+      }
+    );
+  });
+  
   
 
   app.post('/api/thoughts/:username/', (req, res) => {
@@ -67,7 +113,7 @@ app.post('/api/users', (req, res) => {
   
 
 app.get('/api/thoughts', (req, res) => {
-    // Using model in route to find all documents that are instances of that model
+    
     Thought.find({}, (err, result) => {
         if (result) {
             res.status(200).json(result);
