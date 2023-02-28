@@ -79,7 +79,7 @@ app.post('/api/users', (req, res) => {
       }
     );
   });
-  
+
   
 
   app.post('/api/thoughts/:username/', (req, res) => {
@@ -109,6 +109,29 @@ app.post('/api/users', (req, res) => {
       }
     });
   });
+
+    app.delete ('/api/thoughts/:id', (req, res) => {
+      Thought.findOneAndDelete({ _id: req.params.id }, (err, thought) => {
+        if (err) {
+          console.log('Uh Oh, something went wrong');
+          res.status(500).json({ error: 'Something went wrong' });
+        } else {
+          User.findOneAndUpdate(
+            { thoughts: req.params.id },
+            { $pull: { thoughts: req.params.id } },
+            { new: true },
+            (err, user) => {
+              if (err) {
+                console.log('Uh Oh, something went wrong');
+                res.status(500).json({ error: 'Something went wrong' });
+              } else {
+                res.status(201).json(thought);
+              }
+            }
+          );
+        }
+      });
+    });
   
   
 
