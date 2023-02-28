@@ -98,32 +98,80 @@ app.post('/api/users', (req, res) => {
   
 
   app.post('/api/thoughts/:username/', (req, res) => {
-    const newThought = new Thought({
-      username: req.params.username,
-      thoughtText: req.body.thoughtText,
-    });
-    
-    newThought.save((err, thought) => {
+    const username = req.params.username;
+  
+    User.findOne({ username }, (err, user) => {
       if (err) {
         console.log('Uh Oh, something went wrong');
         res.status(500).json({ error: 'Something went wrong' });
+      } else if (!user) {
+        res.status(404).json({ error: `User with username '${username}' not found` });
       } else {
-        User.findOneAndUpdate(
-          { username: req.params.username },
-          { $push: { thoughts: thought._id } },
-          { new: true },
-          (err, user) => {
-            if (err) {
-              console.log('Uh Oh, something went wrong');
-              res.status(500).json({ error: 'Something went wrong' });
-            } else {
-              res.status(201).json(thought);
-            }
+        const newThought = new Thought({
+          username: req.params.username,
+          thoughtText: req.body.thoughtText,
+        });
+  
+        newThought.save((err, thought) => {
+          if (err) {
+            console.log('Uh Oh, something went wrong');
+            res.status(500).json({ error: 'Something went wrong' });
+          } else {
+            User.findOneAndUpdate(
+              { username: req.params.username },
+              { $push: { thoughts: thought._id } },
+              { new: true },
+              (err, user) => {
+                if (err) {
+                  console.log('Uh Oh, something went wrong');
+                  res.status(500).json({ error: 'Something went wrong' });
+                } else {
+                  res.status(201).json(thought);
+                }
+              }
+            );
           }
-        );
+        });
       }
     });
   });
+
+  
+  app.post('/api/thoughts/:thoughtId/reactions', (req, res) => {
+    const { username, reaction } = req.body;
+    Thought.findOneAndUpdate(
+      { _id: req.params.thoughtId },
+      { $push: { reactions: { username, reaction } } },
+      { new: true },
+      (err, thought) => {
+        if (err) {
+          console.log(err + 'Uh Oh, something went wrong');
+          res.status(500).json({ error: 'Something went wrong' });
+        } else {
+          res.status(201).json(thought);
+        }
+      }
+    );
+  });
+
+  app.delete('/api/thoughts/:thoughtId/reactions', (req, res) => {
+    Thought.findOneAndUpdate(
+      { _id: req.params.id },
+      { $pull: { reactions: { _id: req.params.reactionId } } },
+      { new: true },
+      (err, thought) => {
+        if (err) {
+          console.log('Uh Oh, something went wrong');
+          res.status(500).json({ error: 'Something went wrong' });
+        } else {
+          res.status(201).json(thought);
+        }
+      }
+    );
+  });
+
+  
+
 
     app.delete ('/api/thoughts/:id', (req, res) => {
       Thought.findOneAndDelete({ _id: req.params.id }, (err, thought) => {
@@ -140,9 +188,9 @@ app.post('/api/users', (req, res) => {
                 console.log('Uh Oh, something went wrong');
                 res.status(500).json({ error: 'Something went wrong' });
               } else {
-                res.status(201).json(thought);
+                res.status(201).json("thought deleted");
               }
-            }
+            } 
           );
         }
       });
