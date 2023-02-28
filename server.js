@@ -48,6 +48,21 @@ app.post('/api/users', (req, res) => {
       });
   });
 
+  app.delete('/api/users/:id', async (req, res) => {
+    try {
+      const user = await User.findById(req.params.id);
+      const deletedThoughts = await Thought.deleteMany({ username: user.username });
+      const deletedUser = await User.findByIdAndDelete(req.params.id);
+      res.status(201).json({ user: deletedUser, thoughts: deletedThoughts });
+    } catch (err) {
+      console.log(err + 'Uh Oh, something went wrong');
+      res.status(500).json({ error: 'Something went wrong' });
+    }
+  });
+  
+  
+
+
   app.post('/api/users/:id/friends/:friendId', (req, res) => {
     User.findOneAndUpdate(
       { _id: req.params.id },
