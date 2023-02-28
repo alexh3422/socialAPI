@@ -11,7 +11,7 @@ const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-app.post('/new-user/:username/:email', (req, res) => {
+app.post('/api/users', (req, res) => {
     const newUser = new User({ username: req.body.username, email: req.body.email });
     newUser.save();
     if (newUser) {
@@ -36,7 +36,7 @@ app.post('/new-user/:username/:email', (req, res) => {
   });
   
 
-  app.post('/new-thought/:username/', (req, res) => {
+  app.post('/api/thoughts/:username/', (req, res) => {
     const newThought = new Thought({
       username: req.params.username,
       thoughtText: req.body.thoughtText,
@@ -66,7 +66,7 @@ app.post('/new-user/:username/:email', (req, res) => {
   
   
 
-app.get('/all-thoughts', (req, res) => {
+app.get('/api/thoughts', (req, res) => {
     // Using model in route to find all documents that are instances of that model
     Thought.find({}, (err, result) => {
         if (result) {
